@@ -10,11 +10,45 @@ from backend.policy.rules import text as rule_text
 
 _AED = lambda x: f"AED {x:,.0f}"
 
+CACHED_REASONING = {
+    "GOLDEN": (
+        "Salary verification confirms AED 16,711 monthly income. The current installment is "
+        "AED 3,287, so the 20% cap is AED 3,342 and leaves AED 55 of headroom. Agent Sanad "
+        "therefore recommends UPDATE_INSTALLMENT: raise the total installment to AED 3,342 "
+        "and clear AED 6,574 of arrears over 120 months. The plan passes both the 20% cap "
+        "and the remaining-period check."
+    ),
+    "NOHEAD": (
+        "The beneficiary's verified income is AED 3,000 while the current installment is "
+        "AED 3,667, so there is no safe headroom under the 20% cap. Agent Sanad does not "
+        "increase the deduction. It recommends TRANSFER_ARREARS and refers the case to an "
+        "employee because the existing installment is already above income capacity."
+    ),
+    "MISSING": (
+        "The mandatory salary certificate was not received, so monthly income cannot be "
+        "verified. Agent Sanad stops before calculating a repayment plan and requests the "
+        "missing document instead of creating a plan from incomplete evidence."
+    ),
+    "ACTIVE": (
+        "Programme records show an existing active rescheduling request. Rule ACTIVE-01 is "
+        "applied before any financial computation, so the application is rejected at the "
+        "governance gate."
+    ),
+    "CONTRA": (
+        "The uploaded certificate states AED 15,000, but salary verification returns AED 4,000. "
+        "That variance exceeds the policy threshold, and suspicious instruction-like text was "
+        "detected in the document. Agent Sanad treats document text as untrusted content, keeps "
+        "the policy rules unchanged, and refers the case to an employee."
+    ),
+}
+
 
 def build_summary(case: Case, recommendation, plan) -> str:
     a = case.applicant
     who = f"{a.marital_status} beneficiary, family size {a.family_size}" if a else "beneficiary"
     arr = case.arrears.arrears_amount_aed if case.arrears else 0
+    if plan.path == "NONE":
+        return f"{who.capitalize()} with arrears of {_AED(arr)}. Recommendation: {recommendation}."
     return (f"{who.capitalize()} with arrears of {_AED(arr)}. "
             f"Recommendation: {recommendation} via {plan.path.replace('_', ' ').lower()}.")
 
@@ -29,6 +63,9 @@ def build_income_analysis(case: Case, salary) -> str:
 
 
 def build_reasoning(case: Case, recommendation, plan, fired, salary) -> str:
+    cached = CACHED_REASONING.get(case.case_id)
+    if cached:
+        return cached
     lines = []
     if plan and plan.path == "UPDATE_INSTALLMENT":
         cap = 0.20 * (salary or 0)

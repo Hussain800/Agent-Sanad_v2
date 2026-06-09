@@ -46,7 +46,11 @@ def run(case_id: str):
         "case": case.model_dump(mode="json"),
         "report": report.model_dump(mode="json"),
         "audit": log.events(),
-        "impact": {"latency_ms": int((time.time() - t0) * 1000), "benchmark": BENCHMARK},
+        "impact": {
+            "latency_ms": int((time.time() - t0) * 1000),
+            "mock_mode": MOCK_MODE,
+            "benchmark": BENCHMARK,
+        },
     })
 
 

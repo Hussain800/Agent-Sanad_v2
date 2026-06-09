@@ -1,106 +1,530 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Agent Sanad — Arrears Rescheduling</title>
-<style>
-:root{--ink:#1a2b3c;--muted:#5b6b7b;--line:#dfe6ee;--bg:#f5f7fa;--card:#fff;
---gold:#b8902f;--green:#1f7a4d;--red:#b3261e;--amber:#9a6700;--brand:#0b3d2e}
-*{box-sizing:border-box}body{margin:0;font:15px/1.5 -apple-system,Segoe UI,Roboto,Arial;color:var(--ink);background:var(--bg)}
-header{background:var(--brand);color:#fff;padding:14px 22px;display:flex;align-items:center;gap:12px}
-header b{font-weight:700}header .tag{margin-left:auto;font-size:12px;opacity:.85;border:1px solid #ffffff55;padding:3px 8px;border-radius:20px}
-.wrap{max-width:980px;margin:22px auto;padding:0 16px}
-.row{display:flex;gap:16px;flex-wrap:wrap}.col{flex:1;min-width:300px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;margin-bottom:16px}
-.card h3{margin:0 0 12px;font-size:14px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
-.sel{display:flex;gap:8px;flex-wrap:wrap}
-.sel button{border:1px solid var(--line);background:#fff;border-radius:8px;padding:9px 12px;cursor:pointer;font-weight:600}
-.sel button:hover{border-color:var(--gold)}.sel button.active{background:var(--brand);color:#fff;border-color:var(--brand)}
-.kv{display:grid;grid-template-columns:1fr auto;gap:6px 14px}.kv div:nth-child(odd){color:var(--muted)}
-.kv div:nth-child(even){font-weight:600;text-align:right}
-.chip{display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700}
-.pass{background:#e6f4ec;color:var(--green)}.fail{background:#fdeceb;color:var(--red)}.na{background:#eef1f4;color:var(--muted)}
-.badge{display:inline-block;padding:4px 10px;border-radius:6px;font-weight:700;font-size:13px}
-.b-Approve{background:#e6f4ec;color:var(--green)}.b-Refer{background:#fff5e0;color:var(--amber)}
-.b-Reject{background:#fdeceb;color:var(--red)}.b-Request{background:#eef1f4;color:var(--muted)}
-.rec{font-size:22px;font-weight:800;margin:4px 0}
-.muted{color:var(--muted)}.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px}
-.drawer{background:#0d2a20;color:#d7e7df;border-radius:10px;padding:14px;white-space:pre-wrap}
-.impact{display:grid;grid-template-columns:1fr 1fr;gap:8px 18px}
-.impact .big{font-size:20px;font-weight:800;color:var(--brand)}
-.pill{font-size:11px;border:1px solid var(--line);border-radius:20px;padding:2px 8px;color:var(--muted)}
-small.note{color:var(--muted)}
-</style></head><body>
-<header><b>Sheikh Zayed Housing Programme</b> · Agent Sanad — Arrears Rescheduling
-<span class="tag" id="mode">offline-safe</span></header>
-<div class="wrap">
-  <div class="card"><h3>Demo case</h3><div class="sel" id="cases"></div></div>
-  <div class="row">
-    <div class="col">
-      <div class="card"><h3>Recommendation</h3>
-        <div class="rec" id="rec">—</div>
-        <div id="chips"></div>
-        <div style="margin-top:12px" class="kv" id="fields"></div>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Agent Sanad - Arrears Rescheduling</title>
+  <style>
+    :root {
+      --bg: #f4f6f8;
+      --panel: #ffffff;
+      --ink: #172332;
+      --muted: #5f6f82;
+      --line: #dce4ec;
+      --brand: #0b3d2e;
+      --brand-2: #12604b;
+      --gold: #b8902f;
+      --green: #177245;
+      --green-bg: #e7f4ed;
+      --amber: #986700;
+      --amber-bg: #fff5df;
+      --red: #b42318;
+      --red-bg: #fdeceb;
+      --blue: #235a8f;
+      --blue-bg: #e9f1f8;
+      --shadow: 0 10px 28px rgba(23, 35, 50, .08);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--bg);
+      font: 14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      letter-spacing: 0;
+    }
+
+    header {
+      background: var(--brand);
+      color: #fff;
+      min-height: 58px;
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      border-bottom: 3px solid var(--gold);
+    }
+    .brand { font-weight: 800; font-size: 16px; }
+    .program { opacity: .86; }
+    .mode {
+      margin-left: auto;
+      border: 1px solid rgba(255,255,255,.35);
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 12px;
+      color: #e8f4ef;
+      white-space: nowrap;
+    }
+
+    .wrap { max-width: 1180px; margin: 20px auto 36px; padding: 0 16px; }
+    .casebar {
+      display: grid;
+      grid-template-columns: minmax(160px, 220px) 1fr;
+      gap: 14px;
+      align-items: stretch;
+      margin-bottom: 16px;
+    }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+    }
+    .panel.pad { padding: 16px; }
+    .eyebrow {
+      margin: 0 0 10px;
+      font-size: 12px;
+      line-height: 1.2;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--muted);
+      font-weight: 800;
+    }
+    .casebuttons { display: flex; flex-wrap: wrap; gap: 8px; }
+    .casebuttons button {
+      min-height: 40px;
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 8px;
+      padding: 7px 11px;
+      cursor: pointer;
+      color: var(--ink);
+      font-weight: 800;
+      font-size: 12px;
+      letter-spacing: .04em;
+    }
+    .casebuttons button:hover { border-color: var(--gold); }
+    .casebuttons button.active {
+      color: #fff;
+      background: var(--brand);
+      border-color: var(--brand);
+      box-shadow: inset 0 0 0 2px var(--gold);
+    }
+    .casecopy {
+      display: grid;
+      grid-template-columns: 1.1fr 1fr;
+      gap: 12px;
+      min-height: 76px;
+      align-items: center;
+    }
+    .casecopy h1 { margin: 0 0 4px; font-size: 20px; line-height: 1.18; }
+    .casecopy p { margin: 0; color: var(--muted); }
+
+    .grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.12fr) minmax(360px, .88fr);
+      gap: 16px;
+      align-items: start;
+    }
+    .stack { display: grid; gap: 16px; }
+
+    .statusband {
+      border-left: 5px solid var(--green);
+      padding: 14px 16px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+    }
+    .statusband.warning { border-left-color: var(--amber); background: linear-gradient(90deg, var(--amber-bg), #fff 42%); }
+    .statusband.danger { border-left-color: var(--red); background: linear-gradient(90deg, var(--red-bg), #fff 42%); }
+    .statusband.info { border-left-color: var(--blue); background: linear-gradient(90deg, var(--blue-bg), #fff 42%); }
+    .statusband strong { display: block; font-size: 17px; margin-bottom: 3px; }
+    .statusband span { color: var(--muted); }
+
+    .badge, .chip, .rule {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+      border-radius: 999px;
+      padding: 3px 9px;
+      font-weight: 800;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    .badge.approve, .chip.pass { background: var(--green-bg); color: var(--green); }
+    .badge.refer, .chip.warn { background: var(--amber-bg); color: var(--amber); }
+    .badge.reject, .chip.fail { background: var(--red-bg); color: var(--red); }
+    .badge.request, .chip.na { background: #eef2f5; color: var(--muted); }
+    .chip.info { background: var(--blue-bg); color: var(--blue); }
+    .rule { border: 1px solid var(--line); color: var(--muted); background: #fff; margin: 2px 4px 2px 0; }
+
+    .cardhead {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .cardhead h2 { margin: 0; font-size: 18px; line-height: 1.2; }
+    .subtle { color: var(--muted); }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+
+    .official {
+      display: grid;
+      grid-template-columns: minmax(190px, .62fr) minmax(0, 1fr);
+      border-top: 1px solid var(--line);
+      border-left: 1px solid var(--line);
+      overflow: hidden;
+      border-radius: 8px;
+    }
+    .official div {
+      min-height: 38px;
+      padding: 9px 11px;
+      border-right: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      overflow-wrap: anywhere;
+    }
+    .official div:nth-child(odd) {
+      color: var(--muted);
+      background: #f8fafb;
+      font-weight: 700;
+    }
+    .official div:nth-child(even) { font-weight: 650; }
+
+    .facts {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px 14px;
+      align-items: baseline;
+    }
+    .facts div:nth-child(odd) { color: var(--muted); }
+    .facts div:nth-child(even) { text-align: right; font-weight: 750; }
+
+    .journey {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .step {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+      min-height: 88px;
+      background: #fbfcfd;
+    }
+    .step b { display: block; margin-bottom: 6px; }
+    .step span { color: var(--muted); font-size: 13px; }
+    .statusline {
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 8px;
+      background: #f8fafb;
+      color: var(--ink);
+      font-weight: 650;
+    }
+
+    .drawer {
+      background: #0d2a20;
+      color: #dcece4;
+      border-radius: 8px;
+      padding: 14px;
+      min-height: 210px;
+      white-space: pre-wrap;
+      font: 12px/1.55 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      overflow: auto;
+    }
+    .impact {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px 16px;
+      align-items: baseline;
+    }
+    .impact .big { font-size: 20px; color: var(--brand); font-weight: 900; }
+    .divider { height: 1px; background: var(--line); margin: 13px 0; }
+    .loading {
+      opacity: .72;
+      pointer-events: none;
+    }
+    .error {
+      background: var(--red-bg);
+      color: var(--red);
+      padding: 12px;
+      border-radius: 8px;
+      font-weight: 800;
+    }
+
+    @media (max-width: 900px) {
+      .casebar, .casecopy, .grid { grid-template-columns: 1fr; }
+      .journey { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      header { align-items: flex-start; flex-wrap: wrap; }
+      .mode { margin-left: 0; }
+    }
+    @media (max-width: 560px) {
+      .wrap { padding: 0 10px; }
+      .official { grid-template-columns: 1fr; }
+      .official div:nth-child(odd) { border-bottom: 0; }
+      .journey { grid-template-columns: 1fr; }
+      .statusband { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">Sheikh Zayed Housing Programme</div>
+    <div class="program">Agent Sanad - Arrears Rescheduling</div>
+    <div class="mode" id="mode">offline-safe</div>
+  </header>
+
+  <main class="wrap">
+    <section class="casebar">
+      <div class="panel pad">
+        <p class="eyebrow">Demo case</p>
+        <div class="casebuttons" id="cases"></div>
       </div>
-      <div class="card"><h3>Why this plan?</h3><div class="drawer mono" id="drawer">Select a case.</div></div>
-    </div>
-    <div class="col">
-      <div class="card"><h3>Retrieved &amp; extracted</h3><div class="kv" id="facts"></div>
-        <div style="margin-top:10px" id="flags"></div></div>
-      <div class="card"><h3>Zero-bureaucracy impact</h3>
-        <div class="impact">
-          <div class="muted">Manual process</div><div class="big">~5 days</div>
-          <div class="muted">Agent Sanad</div><div class="big" id="lat">&lt;1s</div>
-        </div><hr style="border:none;border-top:1px solid var(--line);margin:12px 0"/>
-        <div class="impact" id="bench"></div>
-        <small class="note" id="benchnote"></small>
+      <div class="panel pad casecopy">
+        <div>
+          <h1 id="caseTitle">Loading case</h1>
+          <p id="caseDescription">Retrieving case fixtures.</p>
+        </div>
+        <div class="chips" id="casePoints"></div>
       </div>
-    </div>
-  </div>
-</div>
-<script>
-const API="";  // same origin
-let active=null;
-const f0=x=>x==null?"—":("AED "+Number(x).toLocaleString());
-const chip=(label,v)=>`<span class="chip ${v==='Pass'?'pass':v==='Fail'?'fail':'na'}">${label}: ${v}</span>`;
-async function load(){const r=await fetch(API+"/cases");const {cases}=await r.json();
-  const el=document.getElementById("cases");el.innerHTML="";
-  cases.forEach(c=>{const b=document.createElement("button");b.textContent=c;b.onclick=()=>run(c,b);el.appendChild(b);});
-  if(cases[0])run(cases[0],el.firstChild);}
-async function run(id,btn){document.querySelectorAll("#cases button").forEach(b=>b.classList.remove("active"));
-  if(btn)btn.classList.add("active");
-  const r=await fetch(API+"/demo/run/"+id,{method:"POST"});const d=await r.json();
-  const rep=d.report,c=d.case,pl=rep.proposed_plan;
-  const short=rep.recommendation.split(" ")[0];
-  document.getElementById("rec").innerHTML=`<span class="badge b-${short}">${rep.recommendation}</span>`;
-  document.getElementById("chips").innerHTML=
-    chip("20% Rule",rep.twenty_pct_compliance)+" "+chip("Period",rep.period_compliance)+
-    ` <span class="pill">path: ${pl.path}</span> <span class="pill">risk: ${rep.risk_level}</span> <span class="pill">conf: ${rep.confidence}</span>`;
-  document.getElementById("fields").innerHTML=
-    `<div>Application status</div><div>${rep.application_status}</div>`+
-    `<div>Arrears</div><div>${f0(rep.arrears_amount_aed)}</div>`+
-    `<div>Remaining balance</div><div>${f0(rep.remaining_balance_aed)}</div>`+
-    `<div>Remaining term</div><div>${rep.remaining_term_months} mo</div>`+
-    `<div>Proposed deduction rate</div><div>${(rep.proposed_deduction_rate*100).toFixed(1)}%</div>`+
-    `<div>New installment</div><div>${f0(pl.new_total_installment_aed)}</div>`+
-    `<div>Additional premium</div><div>${f0(pl.additional_premium_aed)}</div>`+
-    `<div>Additional months</div><div>${pl.additional_months}</div>`;
-  document.getElementById("facts").innerHTML=
-    `<div>Verified income</div><div>${f0(c.income.verified_monthly_income_aed)}</div>`+
-    `<div>Income on certificate</div><div>${f0(c.income.salary_certificate_income_aed)}</div>`+
-    `<div>Current installment</div><div>${f0(c.loan&&c.loan.current_installment_aed)}</div>`+
-    `<div>Family size</div><div>${c.applicant&&c.applicant.family_size}</div>`+
-    `<div>Income trend</div><div>${c.income.income_trend}</div>`;
-  document.getElementById("flags").innerHTML="Fired rules: "+rep.fired_rules.map(x=>`<span class="pill">${x}</span>`).join(" ");
-  document.getElementById("drawer").textContent=
-    d.audit.map(e=>`• ${e.step} (${e.actor}) — ${e.detail}`).join("\n")+"\n\n"+rep.reasoning;
-  document.getElementById("lat").textContent="<"+Math.max(1,d.impact.latency_ms)+"ms";
-  const b=d.impact.benchmark;
-  document.getElementById("bench").innerHTML=
-    `<div class="muted">Path-match (2025)</div><div class="big">${(b.path_match_accuracy*100).toFixed(1)}%</div>`+
-    `<div class="muted">20% compliance</div><div class="big">${(b.twenty_pct_compliance_update*100).toFixed(0)}%</div>`+
-    `<div class="muted">Premium dev (med)</div><div>${f0(b.premium_dev_median_aed)}</div>`+
-    `<div class="muted">Months dev (med)</div><div>${b.months_dev_median}</div>`;
-  document.getElementById("benchnote").textContent=
-    `Benchmarked on ${b.n_held_out} held-out ${b.validated_on} decisions (calibrated ${b.calibrated_on}). Path-match, not exact reproduction.`;
-}
-load();
-</script></body></html>
+    </section>
+
+    <section class="grid">
+      <div class="stack">
+        <div class="panel statusband" id="statusBand">
+          <div>
+            <strong id="decisionTitle">Loading</strong>
+            <span id="decisionText">Preparing recommendation.</span>
+          </div>
+          <div class="badge request" id="decisionBadge">Pending</div>
+        </div>
+
+        <div class="panel pad">
+          <div class="cardhead">
+            <div>
+              <p class="eyebrow">Officer recommendation</p>
+              <h2>Section 8 recommendation output</h2>
+            </div>
+            <div class="chips" id="chips"></div>
+          </div>
+          <div class="official" id="officialFields"></div>
+        </div>
+
+        <div class="panel pad">
+          <div class="cardhead">
+            <div>
+              <p class="eyebrow">Why this plan?</p>
+              <h2>Evidence, rules, and decision trace</h2>
+            </div>
+          </div>
+          <div class="drawer" id="drawer">Select a case.</div>
+        </div>
+      </div>
+
+      <aside class="stack">
+        <div class="panel pad">
+          <p class="eyebrow">Beneficiary journey</p>
+          <div class="journey" id="journey"></div>
+          <div class="statusline" id="beneficiaryStatus">Status pending.</div>
+        </div>
+
+        <div class="panel pad">
+          <p class="eyebrow">Retrieved and extracted</p>
+          <div class="facts" id="facts"></div>
+          <div style="margin-top:12px" id="flags"></div>
+        </div>
+
+        <div class="panel pad">
+          <p class="eyebrow">Zero-bureaucracy impact</p>
+          <div class="impact">
+            <div class="subtle">Manual process</div><div class="big">~5 days</div>
+            <div class="subtle">Agent Sanad draft</div><div class="big" id="lat">&lt;1s</div>
+          </div>
+          <div class="divider"></div>
+          <div class="impact" id="bench"></div>
+          <p class="subtle" id="benchnote" style="margin:12px 0 0"></p>
+        </div>
+      </aside>
+    </section>
+  </main>
+
+  <script>
+    const API = "";
+    const AED = value => value == null || value === 0 ? "N/A" : "AED " + Number(value).toLocaleString();
+    const RATE = value => value == null ? "N/A" : (Number(value) * 100).toFixed(1) + "%";
+
+    const meta = {
+      GOLDEN: {
+        title: "Golden update case",
+        description: "Clean salary verification, retrieved arrears data, and enough headroom to raise the installment within the 20% cap.",
+        points: ["Autonomy", "20% pass", "Period pass"],
+        band: "success"
+      },
+      NOHEAD: {
+        title: "No-headroom transfer case",
+        description: "Current installment already exceeds the beneficiary's income capacity, so the agent shows restraint and routes to a human.",
+        points: ["Hardship", "No increase", "Refer"],
+        band: "danger"
+      },
+      MISSING: {
+        title: "Missing salary certificate",
+        description: "The agent refuses to infer income from incomplete evidence and requests the required document.",
+        points: ["DOC-01", "Incomplete", "No false certainty"],
+        band: "info"
+      },
+      ACTIVE: {
+        title: "Active request gate",
+        description: "An existing active application is found before any financial computation, triggering the governance gate.",
+        points: ["ACTIVE-01", "Reject", "Gate first"],
+        band: "danger"
+      },
+      CONTRA: {
+        title: "Contradiction and injection",
+        description: "Conflicting income values and instruction-like document text are flagged without letting document text alter policy logic.",
+        points: ["INC-01", "RSK-01", "Refer"],
+        band: "warning"
+      }
+    };
+
+    function pillClass(value) {
+      if (value === "Pass") return "pass";
+      if (value === "Fail") return "fail";
+      if (value === "N/A") return "na";
+      return "info";
+    }
+
+    function recClass(rec) {
+      if (rec === "Approve") return "approve";
+      if (rec === "Reject") return "reject";
+      if (rec === "Request documents") return "request";
+      return "refer";
+    }
+
+    function beneficiary(rep) {
+      if (rep.recommendation === "Approve") {
+        return ["Approved", "Your request has a compliant draft plan and is ready for officer approval."];
+      }
+      if (rep.recommendation === "Request documents") {
+        return ["Additional Information Required", "Please upload the missing salary certificate so income can be verified."];
+      }
+      if (rep.recommendation === "Reject") {
+        return ["Rejected", "An active rescheduling request already exists for this beneficiary."];
+      }
+      return ["Human Review Required", "A specialist employee will review the exception before a final decision."];
+    }
+
+    function planText(plan) {
+      if (!plan || plan.path === "NONE") return "No repayment plan generated.";
+      if (plan.path === "TRANSFER_ARREARS") {
+        return `Transfer arrears to the end; keep installment at ${AED(plan.new_total_installment_aed)}.`;
+      }
+      return `Raise installment to ${AED(plan.new_total_installment_aed)} with ${AED(plan.additional_premium_aed)} premium for ${plan.additional_months} months.`;
+    }
+
+    function setLoading(on) {
+      document.body.classList.toggle("loading", on);
+    }
+
+    async function load() {
+      try {
+        const health = await fetch(API + "/healthz").then(r => r.json());
+        document.getElementById("mode").textContent = health.mock_mode ? "offline mock mode" : "live mode";
+        const data = await fetch(API + "/cases").then(r => r.json());
+        const el = document.getElementById("cases");
+        el.innerHTML = "";
+        data.cases.forEach(id => {
+          const b = document.createElement("button");
+          b.type = "button";
+          b.textContent = id;
+          b.onclick = () => run(id, b);
+          el.appendChild(b);
+        });
+        if (data.cases[0]) run(data.cases[0], el.querySelector("button"));
+      } catch (err) {
+        document.getElementById("caseDescription").innerHTML = `<div class="error">Unable to reach the local API.</div>`;
+      }
+    }
+
+    async function run(id, btn) {
+      setLoading(true);
+      document.querySelectorAll("#cases button").forEach(b => b.classList.remove("active"));
+      if (btn) btn.classList.add("active");
+
+      try {
+        const d = await fetch(API + "/demo/run/" + id, { method: "POST" }).then(r => r.json());
+        const rep = d.report;
+        const c = d.case;
+        const pl = rep.proposed_plan;
+        const current = meta[id] || meta.GOLDEN;
+        const [benefitStatus, benefitReason] = beneficiary(rep);
+
+        document.getElementById("caseTitle").textContent = current.title;
+        document.getElementById("caseDescription").textContent = current.description;
+        document.getElementById("casePoints").innerHTML = current.points.map(x => `<span class="chip info">${x}</span>`).join("");
+
+        const statusBand = document.getElementById("statusBand");
+        statusBand.className = "panel statusband";
+        if (current.band === "warning") statusBand.classList.add("warning");
+        if (current.band === "danger") statusBand.classList.add("danger");
+        if (current.band === "info") statusBand.classList.add("info");
+        document.getElementById("decisionTitle").textContent = `${rep.recommendation} - ${pl.path}`;
+        document.getElementById("decisionText").textContent = rep.case_summary;
+        document.getElementById("decisionBadge").className = `badge ${recClass(rep.recommendation)}`;
+        document.getElementById("decisionBadge").textContent = rep.recommendation;
+
+        document.getElementById("chips").innerHTML =
+          `<span class="chip ${pillClass(rep.twenty_pct_compliance)}">20%: ${rep.twenty_pct_compliance}</span>` +
+          `<span class="chip ${pillClass(rep.period_compliance)}">Period: ${rep.period_compliance}</span>` +
+          `<span class="chip info">Risk: ${rep.risk_level}</span>` +
+          `<span class="chip info">Confidence: ${rep.confidence}</span>`;
+
+        const rows = [
+          ["Application Status", rep.application_status],
+          ["Case Summary", rep.case_summary],
+          ["Income Analysis", rep.income_analysis],
+          ["Arrears Amount", AED(rep.arrears_amount_aed)],
+          ["Remaining Loan Balance", AED(rep.remaining_balance_aed)],
+          ["Remaining Repayment Period", `${rep.remaining_term_months} months`],
+          ["Proposed Deduction Rate", RATE(rep.proposed_deduction_rate)],
+          ["Proposed Repayment Plan", planText(pl)],
+          ["20% Rule Compliance", rep.twenty_pct_compliance],
+          ["Period Rule Compliance", rep.period_compliance],
+          ["Recommendation", rep.recommendation],
+          ["Reasoning", rep.reasoning]
+        ];
+        document.getElementById("officialFields").innerHTML = rows.map(([k, v]) => `<div>${k}</div><div>${v}</div>`).join("");
+
+        const journeySteps = [
+          ["UAE PASS", "Identity verified"],
+          ["Programme data", "Loan and arrears retrieved"],
+          ["Salary certificate", c.documents.received_document_types.includes("salary_certificate") ? "Document received" : "Document missing"],
+          ["Status", benefitStatus]
+        ];
+        document.getElementById("journey").innerHTML = journeySteps.map(([k, v]) => `<div class="step"><b>${k}</b><span>${v}</span></div>`).join("");
+        document.getElementById("beneficiaryStatus").textContent = `${benefitStatus}: ${benefitReason}`;
+
+        document.getElementById("facts").innerHTML =
+          `<div>Verified income</div><div>${AED(c.income.verified_monthly_income_aed)}</div>` +
+          `<div>Income on certificate</div><div>${AED(c.income.salary_certificate_income_aed)}</div>` +
+          `<div>Current installment</div><div>${AED(c.loan && c.loan.current_installment_aed)}</div>` +
+          `<div>Arrears</div><div>${AED(c.arrears && c.arrears.arrears_amount_aed)}</div>` +
+          `<div>Family size</div><div>${c.applicant ? c.applicant.family_size : "N/A"}</div>` +
+          `<div>Income trend</div><div>${c.income.income_trend}</div>`;
+
+        document.getElementById("flags").innerHTML = "Fired rules: " + rep.fired_rules.map(x => `<span class="rule">${x}</span>`).join("");
+
+        const audit = d.audit.map(e => `- ${e.step} (${e.actor}): ${e.detail}`).join("\n");
+        document.getElementById("drawer").textContent = `${audit}\n\n${rep.reasoning}`;
+
+        document.getElementById("lat").textContent = "<" + Math.max(1, d.impact.latency_ms) + "ms";
+        const b = d.impact.benchmark;
+        document.getElementById("bench").innerHTML =
+          `<div class="subtle">Path-match (2025)</div><div class="big">${(b.path_match_accuracy * 100).toFixed(1)}%</div>` +
+          `<div class="subtle">20% compliance</div><div class="big">${(b.twenty_pct_compliance_update * 100).toFixed(0)}%</div>` +
+          `<div class="subtle">Premium dev median</div><div>${AED(b.premium_dev_median_aed)}</div>` +
+          `<div class="subtle">Months dev median</div><div>${b.months_dev_median}</div>`;
+        document.getElementById("benchnote").textContent =
+          `Benchmarked on ${b.n_held_out} held-out ${b.validated_on} decisions. Path-match, not exact reproduction.`;
+      } catch (err) {
+        document.getElementById("decisionText").innerHTML = `<span class="error">Case run failed.</span>`;
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    load();
+  </script>
+</body>
+</html>
